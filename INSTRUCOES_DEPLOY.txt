@@ -1,0 +1,94 @@
+INSTRUCOES DE DEPLOY NO NAS
+
+1. PORTA ALTERADA
+-----------------
+A porta foi alterada para 8090 para evitar conflitos com os outros apps.
+O endereco sera: http://<IP-DO-NAS>:8090
+
+2. ARQUIVOS PARA COPIAR
+-----------------------
+Como configuramos o Docker para construir a imagem no proprio NAS ("build: ."), voce precisa copiar TODA a pasta "Clever_2", EXCETO as pastas que sao geradas automaticamente (como "node_modules" e "dist").
+
+Copie estes arquivos e pastas:
+* src/                (Pasta com o codigo fonte do site)
+* public/             (Pasta com icones e assets publicos)
+* Dockerfile          (Arquivo de configuracao da imagem Docker)
+* docker-compose.yml  (Arquivo de orquestracao do Docker)
+* server.js           (O servidor Node.js que criamos)
+* package.json        (Lista de dependencias)
+* package-lock.json   (Versoes exatas das dependencias)
+* index.html          (Arquivo base do site)
+* vite.config.js      (Configuracao do Vite)
+* eslint.config.js    (Configuracao de Lint - opcional)
+
+NAO precisa copiar (economize tempo/espaco):
+* node_modules/       (Sera recriado pelo Docker)
+* dist/               (Sera recriado pelo Docker)
+* .git/               (Se houver)
+
+3. COMO RODAR NO NAS (AMBOS METODOS: VISUAL OU TERMINAL)
+-------------------------------------------------------
+Agora o processo ficou SUPER SIMPLES e LEVE (igual ao V60).
+
+Configuracao Visual (ZimaOS / CasaOS):
+1. ATENCAO: Atualize seu Google Apps Script!
+   - Copie o novo codigo do arquivo `GOOGLE_SCRIPT_CODE.js`.
+   - Cole no editor do Google Script (substituindo o antigo).
+   - Clique em "Implantar" -> "Gerenciar implantacoes" -> "Editar" (lapis) -> "Nova versao" -> "Implantar".
+   (Isso eh necessario para o botao de deletar funcionar).
+
+2. Copie a pasta `Clever_2` para o NAS.
+   Voce so precisa copiar:
+   - Pasta `dist` (Onde esta o site pronto)
+   - Arquivo `docker-compose.yml`
+
+   Pode IGNORAR (nao precisa copiar para o NAS):
+   - `node_modules` (Pesado e inutil no NAS)
+   - `public` (Ja foi "misturado" dentro da dist)
+   - `src` (Eh o codigo fonte, so precisa no seu computador para editar)
+
+3. Va na App Store -> Instalacao Personalizada -> Importar.
+4. Selecione o arquivo `docker-compose.yml`.
+4. Os campos serao preenchidos:
+   - Imagem: `nginx:alpine` (Leve e rapida!)
+   - Porta: `8090` -> `80`
+   - Volume: `./dist` -> `/usr/share/nginx/html`
+5. Clique em Instalar.
+
+Pronto!
+Agora seus logs serao salvos no Google Sheets! Nao precisa se preocupar com banco de dados no NAS.
+
+Se preferir terminal:
+cd /DATA/.../Clever_2
+docker-compose up -d --build
+
+4. COMO RODAR O APP (COMANDOS)
+------------------------------
+Agora que voce esta no terminal (conectado via SSH):
+
+1. Precisamos achar onde esta a sua pasta "Clever_2".
+   Pelo que vi na sua imagem, o disco chama "ZimaOS-HD".
+
+   Tente rodar este comando para ver o que tem na pasta principal de dados:
+   ls /DATA
+
+   Se aparecer "ZimaOS-HD" ou "Storage", entre nele. Exemplo:
+   cd /DATA/ZimaOS-HD
+
+   (Vais usando o comando "ls" para ver o que tem dentro e "cd nome_da_pasta" para entrar, ate chegar no "Clever_2").
+
+   DICA: Se voce comecar a digitar o nome da pasta e apertar TAB, ele completa sozinho!
+
+2. Quando voce estiver dendo da pasta "Clever_2" rodando o comando "ls" deve aparecer o arquivo "docker-compose.yml".
+
+3. Agora rode o comando para subir o app:
+   docker-compose up --build -d
+
+   (Se der erro "command not found", tente: docker compose up --build -d)
+
+
+3. Aguarde terminar. Se aparecer "Creating clever-timer ... done", funcionou!
+
+4. Acesse no navegador: http://<IP-DO-NAS>:8090
+
+

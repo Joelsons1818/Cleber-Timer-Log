@@ -1,0 +1,10 @@
+version: '3'
+services:
+  clever-timer2:
+    image: nginx:alpine
+    container_name: clever-timer2
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html

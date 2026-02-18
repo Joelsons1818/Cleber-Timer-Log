@@ -1,0 +1,107 @@
+DOCUMENTACAO COMPLETA DO SISTEMA - CLEVER DRIPPER TIMER (V2)
+==========================================================
+Data: 18/02/2026
+Autor: Antigravity (Google Deepmind) para Daniel Joelsons
+
+SOBRE O PROJETO
+---------------
+Este é um aplicativo Web (PWA) desenvolvido para auxiliar no preparo de café usando o método "Clever Dripper".
+Ele calcula a proporção (ratio) de café/água, cronometra as etapas do preparo e salva um histórico (log) das receitas.
+
+A versão "V2" difere da original por possuir uma integração com o Google Sheets para salvar o histórico na nuvem, permitindo acesso compartilhado entre múltiplos dispositivos (celular, computador, tablet) rodando via NAS.
+
+FUNCIONALIDADES
+---------------
+1. TELA DE SETUP (Calculadora)
+   - Inputs: Quantidade de Água (ml) e Quantidade de Café (g).
+   - Cálculo automático do Ratio (ex: 1:15). Ao mudar água ou café, o ratio atualiza.
+   - Botão "Start": Inicia o timer com os parâmetros definidos.
+   - Botão "Quick Log": Pula o timer e vai direto para a tela de salvar (para registrar um café que já foi feito).
+   - Botão "History": Abre o histórico de receitas.
+
+2. TELA DE TIMER (Cronômetro)
+   - Contagem regressiva com etapas visuais:
+     a) PREPARAR (Overlay): Contagem regressiva de 5s antes de começar.
+     b) POUR (Despejar): 0s a 45s (Despeje a água).
+     c) STEEP (Infusão): 45s a 2:00 (Aguarde).
+     d) DRAWDOWN (Drenagem): 2:00 em diante (Coloque no copo para drenar).
+   - O timer conta progressivamente até o final.
+   - Botão "Finish": Encerra o preparo e vai para a tela de avaliação.
+
+3. TELA DE REVIEW (Avaliação)
+   - Permite registrar detalhes do café:
+     - Nome do Grão (ex: Etiópia)
+     - Temperatura da Água (°C)
+     - Moagem (Clicks/Grind size)
+     - Notas de degustação (Campo de texto)
+   - Botão "Save Log": Salva na memória local E no Google Sheets.
+     - Mostra estado de "Saving..." enquanto envia.
+   - Botão "Skip": Volta ao início sem salvar.
+
+4. TELA DE HISTORY (Histórico)
+   - Lista todas as receitas salvas (buscando do Google Sheets).
+   - Mostra data, nome do café, água, pó, temperatura, moagem e notas.
+   - Botão "Refresh" (🔄): Atualiza a lista buscando dados novos da planilha.
+   - Botão "Delete" (🗑️): Apaga o registro da tela e da planilha Google.
+
+ESTRUTURA TÉCNICA (ARQUITETURA)
+-------------------------------
+O sistema é dividido em duas partes principais:
+
+A. FRONTEND (O Site em si)
+   - Tecnologia: React + Vite.
+   - Estilo: CSS Puro (`index.css`) com tema "Dark Glassmorphism" (Fundo escuro, cartões translúcidos, tons de marrom/cinza/dourado).
+   - Hospedagem: Roda dentro de um container Docker (Nginx) no NAS.
+   - Arquivos principais:
+     - `src/App.jsx`: Gerencia a navegação entre telas e lógica principal.
+     - `src/components/*`: Componentes de cada tela.
+     - `src/utils/api.js`: Faz a comunicação com o Google.
+     - `dist/`: Pasta gerada com o site otimizado para produção.
+
+B. BACKEND (Banco de Dados)
+   - Tecnologia: Google Sheets + Google Apps Script.
+   - O site não tem banco de dados próprio. Ele manda os dados para um "Script do Google" que salva numa planilha.
+   - Segurança: O Script é publicado como "Web App" acessível publicamente (via URL secreta), permitindo que o NAS salve dados sem precisar de login complexo.
+
+COMO RECRIAR O PROJETO DO ZERO
+------------------------------
+
+PASSO 1: O BACKEND (GOOGLE)
+1. Crie uma planilha no Google Sheets chamada `CleverLogs`.
+2. Vá em Extensões > Apps Script.
+3. Cole o código que está no arquivo `GOOGLE_SCRIPT_CODE.js` desta pasta.
+   - Este código tem duas funções: `doGet` (ler dados) e `doPost` (salvar/deletar).
+4. Clique em "Implantar" > "Nova implantação" > Tipo "App da Web".
+   - Executar como: "Eu".
+   - Quem pode acessar: "Qualquer pessoa".
+5. Copie a URL gerada (ex: `https://script.google.com/macros/s/...`).
+
+PASSO 2: O FRONTEND (CÓDIGO)
+1. No arquivo `src/utils/api.js`, substitua a constante `API_URL` pela URL que você copiou do Google.
+2. Instale as dependências (se estiver no computador): `npm install`.
+3. Gere a versão final: `npm run build`.
+   - Isso vai criar a pasta `dist` com os arquivos HTML/CSS/JS prontos.
+
+PASSO 3: O DEPLOY (NAS)
+1. Copie a pasta do projeto (principalmente a pasta `dist` e o arquivo `docker-compose.yml`) para o NAS.
+2. O arquivo `docker-compose.yml` deve usar a imagem `nginx:alpine` e mapear `./dist` para `/usr/share/nginx/html`.
+3. No ZimaOS/CasaOS, use a função "Importar" e selecione o `docker-compose.yml`.
+4. O app rodará na porta 8090 (ou outra definida).
+
+DICAS E MANUTENÇÃO
+------------------
+- Se quiser mudar cores: Edite `src/index.css`.
+- Se quiser mudar tempos do timer: Edite `src/components/TimerDisplay.jsx` ou `App.jsx`.
+- Se a planilha parar de funcionar: Verifique se você não mudou o nome das colunas ou se a URL do script mudou (acontece se fizer novo deploy sem ser "Nova versão").
+- Backup: Mantenha sempre a pasta `src` guardada. A pasta `dist` pode ser gerada a qualquer momento a partir da `src`.
+
+LISTA DE ARQUIVOS ESSENCIAIS (BACKUP)
+-------------------------------------
+1. `src/` (Todo o código fonte)
+2. `package.json` (Lista de bibliotecas usadas)
+3. `vite.config.js` (Configuração do compilador)
+4. `docker-compose.yml` (Receita de instalação no NAS)
+5. `GOOGLE_SCRIPT_CODE.js` (Código do "servidor" Google)
+6. `index.html` (Arquivo base)
+
+Com esses arquivos, você recria o projeto em qualquer lugar do mundo.
