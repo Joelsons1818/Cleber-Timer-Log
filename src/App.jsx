@@ -126,10 +126,6 @@ function App() {
         />
       )}
 
-      <div className="app-footer">
-        Created by Daniel Joelsons
-      </div>
-      
       <Analytics />
       <SpeedInsights />
     </div>

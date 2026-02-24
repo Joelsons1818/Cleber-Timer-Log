@@ -263,7 +263,8 @@ input:focus {
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.6rem;
-  border-radius: 50%; /* Circle */
+  border-radius: 50%;
+  /* Circle */
   transition: all 0.3s ease;
   color: #ccc;
   display: flex;
@@ -274,10 +275,12 @@ input:focus {
 }
 
 .btn-icon:hover {
-  background: rgba(139, 69, 19, 0.4); /* SaddleBrown with transparency */
+  background: rgba(139, 69, 19, 0.4);
+  /* SaddleBrown with transparency */
   border-color: rgba(139, 69, 19, 0.6);
   color: white;
-  transform: rotate(15deg); /* Subtle twist */
+  transform: rotate(15deg);
+  /* Subtle twist */
   box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);
 }
 
@@ -624,9 +627,8 @@ textarea {
 /* Footer Style */
 .app-footer {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.4);
   font-weight: 300;
-  width: 100%;
 }

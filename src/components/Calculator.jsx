@@ -142,10 +142,13 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                 </div>
             </div>
 
-            <div className="controls-col" style={{ marginTop: '1rem' }}>
+            <div className="controls-col" style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <button className="btn-primary" onClick={handleStart}>
                     Start Timer
                 </button>
+                <div className="app-footer">
+                    Created by Daniel Joelsons
+                </div>
             </div>
         </div>
     );
