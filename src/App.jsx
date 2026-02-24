@@ -3,6 +3,8 @@ import Calculator from './components/Calculator'
 import TimerDisplay from './components/TimerDisplay'
 import ReviewScreen from './components/ReviewScreen'
 import HistoryScreen from './components/HistoryScreen'
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import './index.css'
 import { getLogs, saveLog, syncLogs, deleteLog } from './utils/api';
 
@@ -127,6 +129,9 @@ function App() {
       <div className="app-footer">
         Created by Daniel Joelsons
       </div>
+      
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
