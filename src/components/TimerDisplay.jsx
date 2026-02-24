@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import audioController from '../utils/AudioController.js';
 
 const TimerDisplay = ({ recipe, onReset, onFinish }) => {
     // Total Duration from recipe, default to 140s (2:20)
@@ -13,7 +12,10 @@ const TimerDisplay = ({ recipe, onReset, onFinish }) => {
     const [prepCount, setPrepCount] = useState(3);
     const startTimeRef = useRef(null);
     const pausedTimeRef = useRef(0); // Track total paused duration
-    const wakeLockRef = useRef(null); // Keep screen awake
+
+    // Audio Context Ref (Persistent - Local to Component like V60)
+    const audioCtxRef = useRef(null);
+    const lastPlayedRef = useRef(-1);
 
     // Format mm:ss
     const formatTime = (seconds) => {
@@ -22,11 +24,65 @@ const TimerDisplay = ({ recipe, onReset, onFinish }) => {
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
-    const playTone = (freq, type, duration) => {
-        audioController.playTone(freq, type, duration);
+    // Initialize or Resume Audio Context
+    const ensureAudioContext = () => {
+        if (!audioCtxRef.current) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                audioCtxRef.current = new AudioContext();
+            }
+        }
+        if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+            audioCtxRef.current.resume();
+        }
     };
 
-    // Prep Countdown Loop (NO BEEP)
+    // Play Silent Buffer (iOS Unlock)
+    const playSilentBuffer = () => {
+        try {
+            if (!audioCtxRef.current) ensureAudioContext();
+            const ctx = audioCtxRef.current;
+            if (!ctx) return;
+
+            // Create a short empty buffer and play it to unlock iOS audio
+            const buffer = ctx.createBuffer(1, 1, 22050);
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(ctx.destination);
+            source.start(0);
+            console.log("Silent buffer played (Audio Unlock)");
+        } catch (e) {
+            console.error("Silent buffer failed", e);
+        }
+    };
+
+    // Play Tone Function
+    const playTone = (freq, type, duration) => {
+        try {
+            if (!audioCtxRef.current) ensureAudioContext();
+            const ctx = audioCtxRef.current;
+            if (!ctx) return;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+            gain.gain.setValueAtTime(0.5, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start();
+            osc.stop(ctx.currentTime + duration);
+        } catch (e) {
+            console.error("Audio play failed", e);
+        }
+    };
+
+    // Prep Countdown Loop (NO BEEP usually, but let's keep it simple)
     useEffect(() => {
         let interval = null;
         if (isPreparing && prepCount > 0) {
@@ -46,8 +102,16 @@ const TimerDisplay = ({ recipe, onReset, onFinish }) => {
 
     // Init Logic on Mount
     useEffect(() => {
-        startTimeRef.current = Date.now();
-        playTone(0, 'sine', 0.01); // Wake audio
+        // Attempt to init audio, but likely needs interaction on iOS
+        ensureAudioContext();
+
+        // Cleanup
+        return () => {
+            if (audioCtxRef.current) {
+                audioCtxRef.current.close().catch(e => console.error("Error closing audio context", e));
+                audioCtxRef.current = null;
+            }
+        }
     }, []);
 
     // Timer Loop
@@ -112,6 +176,10 @@ const TimerDisplay = ({ recipe, onReset, onFinish }) => {
             setIsActive(false);
             setPauseStart(Date.now());
         } else {
+            // Unlock audio on resume as well, just in case
+            ensureAudioContext();
+            playSilentBuffer();
+
             setIsActive(true);
             const pauseDuration = Date.now() - pauseStart;
             pausedTimeRef.current += pauseDuration;
@@ -122,10 +190,21 @@ const TimerDisplay = ({ recipe, onReset, onFinish }) => {
     return (
         <div className="card">
             {isPreparing ? (
-                <div className="prep-overlay">
+                <div
+                    className="prep-overlay"
+                    onClick={() => {
+                        // Explicitly unlock audio on tap
+                        ensureAudioContext();
+                        playSilentBuffer();
+                    }}
+                >
                     <h2>Get Ready</h2>
                     <div className="time-big animated">{prepCount > 0 ? prepCount : 'GO!'}</div>
-                    <button className="btn-secondary" onClick={onReset}>Cancel</button>
+                    <p className="hint" style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '10px' }}>(Tap anywhere to unlock audio)</p>
+                    <button className="btn-secondary" onClick={(e) => {
+                        e.stopPropagation();
+                        onReset();
+                    }}>Cancel</button>
                 </div>
             ) : (
                 <>

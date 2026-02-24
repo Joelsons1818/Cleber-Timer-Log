@@ -623,11 +623,10 @@ textarea {
 /* But to be safe, let's keep it simple. */
 /* Footer Style */
 .app-footer {
-  position: fixed;
-  bottom: 10px;
-  right: 20px;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.3);
-  pointer-events: none;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 300;
+  width: 100%;
 }

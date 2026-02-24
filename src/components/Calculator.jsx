@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import audioController from '../utils/AudioController.js';
 
 const Calculator = ({ onStart, onQuickLog, onHistory }) => {
     const RATIO = 15.385;
@@ -65,6 +64,8 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                 <label>Water (ml)</label>
                 <input
                     type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
                     value={water}
                     onChange={handleWaterChange}
                     step="5"
@@ -76,6 +77,8 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                 <label>Coffee (g)</label>
                 <input
                     type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*"
                     value={coffee}
                     onChange={handleCoffeeChange}
                     step="0.5"
@@ -88,6 +91,8 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                     <label>Temp (°C)</label>
                     <input
                         type="number"
+                        inputMode="decimal"
+                        pattern="[0-9]*"
                         value={temp}
                         onChange={handleTempChange}
                         max="100"
@@ -100,6 +105,8 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                     <label>Grind</label>
                     <input
                         type="number"
+                        inputMode="decimal"
+                        pattern="[0-9]*"
                         value={grind}
                         onChange={(e) => setGrind(e.target.value)}
                         placeholder="20"
@@ -114,6 +121,8 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <input
                             type="number"
+                            inputMode="decimal"
+                            pattern="[0-9]*"
                             value={minutes}
                             onChange={(e) => setMinutes(e.target.value)}
                             placeholder="2"
@@ -122,6 +131,8 @@ const Calculator = ({ onStart, onQuickLog, onHistory }) => {
                         <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>:</span>
                         <input
                             type="number"
+                            inputMode="decimal"
+                            pattern="[0-9]*"
                             value={seconds}
                             onChange={(e) => setSeconds(e.target.value)}
                             placeholder="20"
